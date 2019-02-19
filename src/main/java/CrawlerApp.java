@@ -1,3 +1,4 @@
+import crawler.CrawlDataWriter;
 import crawler.test.SimpleStatsCrawler;
 
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
@@ -7,7 +8,7 @@ import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
 
 public class CrawlerApp {
-	public static final String CRAWL_STORAGE = "~/Downloads/data/crawl";
+	public static final String CRAWL_STORAGE = System.getProperty("user.dir");;
 	public static final int MAX_CRAWL_DEPTH = 1;
 	public static final int NUMBER_OF_CRAWLERS = 4;
 	public static final int POLITENESS_DELAY = 50;
@@ -39,6 +40,11 @@ public class CrawlerApp {
 		/*
 			Start the crawl
 		 */
-		controller.startNonBlocking(SimpleStatsCrawler.class, NUMBER_OF_CRAWLERS);
+		controller.start(SimpleStatsCrawler.class, NUMBER_OF_CRAWLERS);
+
+		/*
+			Close streams and flush
+		 */
+		CrawlDataWriter.getInstance().close();
 	}
 }

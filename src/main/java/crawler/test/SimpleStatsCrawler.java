@@ -69,7 +69,6 @@ public class SimpleStatsCrawler extends WebCrawler {
 			HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
 
 			String text = htmlParseData.getText(); // extract text from page
-			String html = htmlParseData.getHtml(); // extract html from page
 			Set<WebURL> links = htmlParseData.getOutgoingUrls();
 
 			System.out.println("Page URL: " + url);

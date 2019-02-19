@@ -24,3 +24,8 @@ hs_err_pid*
 
 # Intellij
 .idea/
+
+# Generated files from crawling
+frontier/
+*.csv
+CrawlReport_guardian.txt
