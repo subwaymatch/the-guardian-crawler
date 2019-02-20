@@ -1,18 +1,26 @@
-import crawler.CrawlDataWriter;
-import crawler.test.SimpleStatsCrawler;
+package crawler;
 
+import crawler.fetcher.CustomPageFetcher;
+import crawler.helpers.CrawlDataWriter;
 import edu.uci.ics.crawler4j.crawler.CrawlConfig;
 import edu.uci.ics.crawler4j.crawler.CrawlController;
 import edu.uci.ics.crawler4j.fetcher.PageFetcher;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtConfig;
 import edu.uci.ics.crawler4j.robotstxt.RobotstxtServer;
+import org.apache.http.client.HttpClient;
 
 public class CrawlerApp {
 	public static final String CRAWL_STORAGE = System.getProperty("user.dir");;
 	public static final int MAX_CRAWL_DEPTH = 1;
-	public static final int NUMBER_OF_CRAWLERS = 4;
+	public static final int NUMBER_OF_CRAWLERS = 16;
 	public static final int POLITENESS_DELAY = 50;
-	public static final int MAX_PAGES_TO_FETCH = 20;
+	public static final int MAX_PAGES_TO_FETCH = 2000;
+
+	private static HttpClient httpClient;
+
+	public static HttpClient getHttpClient() {
+		return httpClient;
+	}
 
 	public static void main(String[] args) throws Exception {
 		/*
@@ -23,11 +31,15 @@ public class CrawlerApp {
 		crawlConfig.setMaxDepthOfCrawling(MAX_CRAWL_DEPTH);
 		crawlConfig.setPolitenessDelay(POLITENESS_DELAY);
 		crawlConfig.setMaxPagesToFetch(MAX_PAGES_TO_FETCH);
+		crawlConfig.setIncludeHttpsPages(true);
+		crawlConfig.setIncludeBinaryContentInCrawling(true);
 
 		/*
 			Instantiate controller for this crawl
 		 */
-		PageFetcher pageFetcher = new PageFetcher(crawlConfig);
+		PageFetcher pageFetcher = new CustomPageFetcher(crawlConfig);
+		httpClient = ((CustomPageFetcher) pageFetcher).getHttpClient();
+
 		RobotstxtConfig robotstxtConfig = new RobotstxtConfig();
 		RobotstxtServer robotstxtServer = new RobotstxtServer(robotstxtConfig, pageFetcher);
 		CrawlController controller = new CrawlController(crawlConfig, pageFetcher, robotstxtServer);
@@ -35,7 +47,7 @@ public class CrawlerApp {
 		/*
 			Add seed URLs
 		 */
-		controller.addSeed("http://www.theguardian.com/");
+		controller.addSeed("https://www.theguardian.com/us");
 
 		/*
 			Start the crawl
@@ -45,6 +57,8 @@ public class CrawlerApp {
 		/*
 			Close streams and flush
 		 */
-		CrawlDataWriter.getInstance().close();
+		CrawlDataWriter crawlDataWriter = CrawlDataWriter.getInstance();
+		crawlDataWriter.generateReport();
+		crawlDataWriter.close();
 	}
 }
