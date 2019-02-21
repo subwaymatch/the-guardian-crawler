@@ -5,6 +5,7 @@ import crawler.helpers.CrawlHelper;
 import edu.uci.ics.crawler4j.crawler.Page;
 import edu.uci.ics.crawler4j.crawler.WebCrawler;
 import edu.uci.ics.crawler4j.parser.HtmlParseData;
+import edu.uci.ics.crawler4j.parser.ParseData;
 import edu.uci.ics.crawler4j.url.WebURL;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -17,9 +18,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class SimpleStatsCrawler extends WebCrawler {
-	public static int crawlerCount = 0;
-	private int crawlerId;
-
 	private static final Pattern DISALLOWED_EXT_FILTER = Pattern.compile(".*(\\.(css|js|mp3|mp4|zip|gz|ico|json))$");
 	private static final Pattern ALLOWED_EXT_FILTER = Pattern.compile(".*(\\.(htm|html|pdf|bmp|gif|jpe?g|png?))$");
 	private static final String[] ALLOWED_CONTENT_TYPES = new String[] {
@@ -35,10 +33,6 @@ public class SimpleStatsCrawler extends WebCrawler {
 
 	public SimpleStatsCrawler() {
 		super();
-		  
-		crawlerId = ++crawlerCount;
-
-		System.out.println("crawlerCount = " + crawlerCount);
 
 		allowedContentTypesList = Arrays.asList(ALLOWED_CONTENT_TYPES);
 		crawlDataWriter = CrawlDataWriter.getInstance();
@@ -49,11 +43,7 @@ public class SimpleStatsCrawler extends WebCrawler {
 	protected void handlePageStatusCode(WebURL webUrl, int statusCode, String statusDescription) {
 		super.handlePageStatusCode(webUrl, statusCode, statusDescription);
 
-		System.out.println("=======================");
-		System.out.println("SimpleStatsCrawler.handlePageStatusCode");
-		System.out.println("webUrl = [" + webUrl + "], statusCode = [" + statusCode + "], statusDescription = [" + statusDescription + "]");
-
-		crawlDataWriter.recordFetchAttempt(webUrl.getURL(), statusCode);
+		crawlDataWriter.recordFetchAttempt(webUrl.getURL(), statusCode, statusDescription);
 	}
 
 	@Override
@@ -137,13 +127,18 @@ public class SimpleStatsCrawler extends WebCrawler {
 		}
 
 		// If domain is outside the crawling domain, do not visit
-		if (!CrawlHelper.isUrlInternal(url)) {
+		if (!CrawlHelper.isUrlInternal(url.getURL())) {
+			return false;
+		}
+
+		// If rss feed, don't visit
+		if (CrawlHelper.isRssFeedUrl(url.getURL())) {
 			return false;
 		}
 
 		// If file extension is not known, make a HEAD request to find out the content type
 		if (!ALLOWED_EXT_FILTER.matcher(href).matches()) {
-			System.out.println("GETTING HEAD");
+/*			System.out.println("GETTING HEAD");
 
 			HttpUriRequest httpUriRequest = new HttpHead(url.getURL());
 
@@ -176,10 +171,9 @@ public class SimpleStatsCrawler extends WebCrawler {
 			} catch (Exception e) {
 				// If header can't be returned, do not visit
 				return false;
-			}
+			}*/
 		}
 
-		System.out.println("Should visit URL");
 		return true;
 	}
 
@@ -195,9 +189,17 @@ public class SimpleStatsCrawler extends WebCrawler {
 
 		String url = page.getWebURL().getURL();
 
-		crawlDataWriter.recordSuccessfulDownload(url, 0, page.getParseData().getOutgoingUrls().size(), CrawlHelper.extractContentType(page.getContentType()));
+		ParseData parseData = page.getParseData();
 
-		HtmlParseData htmlParseData = (HtmlParseData) page.getParseData();
-		// crawlDataWriter.recordDiscoveredUrls(htmlParseData.getOutgoingUrls());
+		int contentSize = page.getContentData().length;
+
+		String mimeType = CrawlHelper.extractContentType(page.getContentType());
+		crawlDataWriter.recordSuccessfulDownload(url, contentSize, page.getParseData().getOutgoingUrls().size(), mimeType);
+
+		if (parseData instanceof HtmlParseData) {
+			HtmlParseData htmlParseData = (HtmlParseData) parseData;
+
+			crawlDataWriter.recordDiscoveredUrls(htmlParseData.getOutgoingUrls());
+		}
 	}
 }

@@ -11,10 +11,10 @@ import org.apache.http.client.HttpClient;
 
 public class CrawlerApp {
 	public static final String CRAWL_STORAGE = System.getProperty("user.dir");;
-	public static final int MAX_CRAWL_DEPTH = 1;
-	public static final int NUMBER_OF_CRAWLERS = 16;
+	public static final int MAX_CRAWL_DEPTH = 16;
+	public static final int NUMBER_OF_CRAWLERS = 6;
 	public static final int POLITENESS_DELAY = 50;
-	public static final int MAX_PAGES_TO_FETCH = 2000;
+	public static final int MAX_PAGES_TO_FETCH = 100;
 
 	private static HttpClient httpClient;
 
