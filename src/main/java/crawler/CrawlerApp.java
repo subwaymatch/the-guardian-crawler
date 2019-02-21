@@ -12,9 +12,9 @@ import org.apache.http.client.HttpClient;
 public class CrawlerApp {
 	public static final String CRAWL_STORAGE = System.getProperty("user.dir");;
 	public static final int MAX_CRAWL_DEPTH = 16;
-	public static final int NUMBER_OF_CRAWLERS = 6;
+	public static final int NUMBER_OF_CRAWLERS = 8;
 	public static final int POLITENESS_DELAY = 50;
-	public static final int MAX_PAGES_TO_FETCH = 100;
+	public static final int MAX_PAGES_TO_FETCH = 20000;
 
 	private static HttpClient httpClient;
 
@@ -31,6 +31,7 @@ public class CrawlerApp {
 		crawlConfig.setMaxDepthOfCrawling(MAX_CRAWL_DEPTH);
 		crawlConfig.setPolitenessDelay(POLITENESS_DELAY);
 		crawlConfig.setMaxPagesToFetch(MAX_PAGES_TO_FETCH);
+		crawlConfig.setMaxDownloadSize(10 * 1024 * 1024);
 		crawlConfig.setIncludeHttpsPages(true);
 		crawlConfig.setIncludeBinaryContentInCrawling(true);
 

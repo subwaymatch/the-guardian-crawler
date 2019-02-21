@@ -6,13 +6,7 @@ public class CrawlHelper {
 	public static boolean isUrlInternal(String url) {
 		if (url == null) return false;
 
-		return url.contains("www.theguardian.com/us");
-	}
-
-	public static boolean isUrlInternal(WebURL webUrl) {
-		if (webUrl == null) return false;
-
-		return isUrlInternal(webUrl.getURL());
+		return url.startsWith("https://www.theguardian.com/us") || url.startsWith("https://www.theguardian.com/us");
 	}
 
 	public static String extractContentType(String fullContentTypeString) {
@@ -25,11 +19,7 @@ public class CrawlHelper {
 		return (statusCode >= 200) && (statusCode <= 299);
 	}
 
-	public static boolean isRedirectStatusCode(int statusCode) {
-		return (statusCode >= 300) && (statusCode <= 399);
-	}
-
-	public static boolean isAbortedStatusCode(int statusCode) {
+	public static boolean isFailedOrAbortedStatusCode(int statusCode) {
 		return (statusCode < 200) || (statusCode >= 300);
 	}
 

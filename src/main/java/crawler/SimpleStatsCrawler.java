@@ -48,10 +48,6 @@ public class SimpleStatsCrawler extends WebCrawler {
 
 	@Override
 	protected WebURL handleUrlBeforeProcess(WebURL curURL) {
-		System.out.println("=======================");
-		System.out.println("SimpleStatsCrawler.handleUrlBeforeProcess");
-		System.out.println("curURL = [" + curURL + "]");
-
 		return super.handleUrlBeforeProcess(curURL);
 	}
 
@@ -115,10 +111,6 @@ public class SimpleStatsCrawler extends WebCrawler {
 	 */
 	@Override
 	public boolean shouldVisit(Page referringPage, WebURL url) {
-		System.out.println("=======================");
-		System.out.println("SimpleStatsCrawler.shouldVisit");
-		System.out.println("referringPage = [" + referringPage + "], url = [" + url + "]");
-
 		String href = url.getURL().toLowerCase();
 
 		// If file extension is in one of the blocked types, do not visit
@@ -183,10 +175,6 @@ public class SimpleStatsCrawler extends WebCrawler {
 	 */
 	@Override
 	public void visit(Page page) {
-		System.out.println("=======================");
-		System.out.println("SimpleStatsCrawler.visit");
-		System.out.println("page = [" + page + "], url=" + page.getWebURL().getURL());
-
 		String url = page.getWebURL().getURL();
 
 		ParseData parseData = page.getParseData();

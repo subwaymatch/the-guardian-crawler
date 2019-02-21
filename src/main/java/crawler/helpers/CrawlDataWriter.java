@@ -10,10 +10,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CrawlDataWriter {
@@ -25,11 +22,11 @@ public class CrawlDataWriter {
 	public static final Path DISCOVERED_URLS_FILE_PATH = Paths.get(FILE_SAVE_PATH, "urls_guardian.csv");
 	public static final Path REPORT_FILE_PATH = Paths.get(FILE_SAVE_PATH, "CrawlReport_guardian.txt");
 
-	public static final String LESS_THAN_1KB = "< 1KB:";
-	public static final String LESS_THAN_10KB = "1KB ~ <10KB:";
-	public static final String LESS_THAN_100KB = "10KB ~ <100KB:";
-	public static final String LESS_THAN_1MB = "100KB ~ <1MB:";
-	public static final String LARGER_THAN_1MB = ">= 1MB:";
+	public static final String LESS_THAN_1KB = "< 1KB";
+	public static final String LESS_THAN_10KB = "1KB ~ <10KB";
+	public static final String LESS_THAN_100KB = "10KB ~ <100KB";
+	public static final String LESS_THAN_1MB = "100KB ~ <1MB";
+	public static final String LARGER_THAN_1MB = ">= 1MB";
 
 	private CSVPrinter fetchAttemptsCSVPrinter;
 	private CSVPrinter successfulDownloadsCSVPrinter;
@@ -85,6 +82,10 @@ public class CrawlDataWriter {
 		return mInstance;
 	}
 
+	public synchronized void onFetchFail() {
+		numFetchesFailedOrAborted++;
+	}
+
 	public synchronized void recordFetchAttempt(String url, int statusCode, String statusDescription) {
 		url = url.replace(",", "-");
 
@@ -98,16 +99,15 @@ public class CrawlDataWriter {
 		statusCodeCount.compute(statusCodeKey, (k, v) -> (v == null) ? 1 : v + 1 );
 
 		if (CrawlHelper.isSuccessStatusCode(statusCode)) numFetchesSucceeded++;
-		else if (CrawlHelper.isAbortedStatusCode(statusCode)) numFetchesFailedOrAborted++;
+		else if (CrawlHelper.isFailedOrAbortedStatusCode(statusCode)) numFetchesFailedOrAborted++;
 	}
 
 	public synchronized void recordSuccessfulDownload(String url, int size, int numOutLinks, String contentType) {
 		url = url.replace(",", "-");
 
 		try {
-			System.out.println("url = [" + url + "], size = [" + size + "], numOutLinks = [" + numOutLinks + "], contentType = [" + contentType + "]");
+			System.out.println("Recorded url = [" + url + "], size = [" + size + "], numOutLinks = [" + numOutLinks + "], contentType = [" + contentType + "]");
 			successfulDownloadsCSVPrinter.printRecord(url, size, numOutLinks, contentType);
-			System.out.println("Recorded");
 		} catch (IOException ie) {
 			ie.printStackTrace();
 		}
@@ -160,16 +160,16 @@ public class CrawlDataWriter {
 	}
 
 	public void generateReport() {
-		reportPrinter.println("Name: ");
-		reportPrinter.println("USC ID: ");
-		reportPrinter.println("News site crawled: ");
+		reportPrinter.println("Name: Ye Joo Park");
+		reportPrinter.println("USC ID: 1128685151");
+		reportPrinter.println("News site crawled: www.theguardian.com/us");
 		reportPrinter.println();
 
 		reportPrinter.println("Fetch Statistics");
 		reportPrinter.println("================");
 		reportPrinter.println("# fetches attempted: " + (numFetchesSucceeded + numFetchesFailedOrAborted));
 		reportPrinter.println("# fetches succeeded: "+ numFetchesSucceeded);
-		reportPrinter.println("# fetches failed or aborted:" + numFetchesFailedOrAborted);
+		reportPrinter.println("# fetches failed or aborted: " + numFetchesFailedOrAborted);
 		reportPrinter.println();
 
 		long numUniqueInternalUrls = uniqueUrls.stream().filter((url)-> CrawlHelper.isUrlInternal(url)).count();
@@ -184,9 +184,14 @@ public class CrawlDataWriter {
 
 		reportPrinter.println("Status Codes:");
 		reportPrinter.println("=============");
-		statusCodeCount.forEach((statusCodeKey, count) -> {
-			reportPrinter.println(statusCodeKey + ": " + count);
-		});
+
+		String[] statusCodeKeys = statusCodeCount.keySet().toArray(new String[statusCodeCount.size()]);
+		Arrays.sort(statusCodeKeys);
+
+		for (String statusCodeKey : statusCodeKeys) {
+			reportPrinter.println(statusCodeKey + ": " + statusCodeCount.getOrDefault(statusCodeKey, 0));
+		}
+
 		reportPrinter.println();
 
 		reportPrinter.println("File Sizes:");
